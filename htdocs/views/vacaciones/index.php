@@ -1,12 +1,14 @@
 <?php
-// views/vacaciones/index.php
-// Variables: $listaVacaciones, $listaAnios, $search_nombre, $search_area, $anio_inicio_filtro, $errorMessage
+// ... (variables existentes) ...
+
+// --- NUEVO: Capturar el ID de persona del filtro ---
+$persona_id_filtro = $_GET['persona_id_filtro'] ?? '';
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3 mb-0 text-gray-800">Registro de Vacaciones</h1>
-    <a href="index.php?controller=vacacion&action=create" class="btn btn-primary">
-        <i class="bi bi-plus-lg me-1"></i> Registrar Vacaciones
+    <a href="index.php?controller=vacacion&action=create&persona_id_preselect=<?php echo $persona_id_filtro; ?>&view=modal" 
+   class="btn btn-primary"> <i class="bi bi-plus-lg me-1"></i> Registrar Vacaciones
     </a>
 </div>
 
@@ -186,7 +188,7 @@
                                                   // Se eliminó el "if ($estado != 'GOZADO')"
                                                   // El botón "Editar" ahora aparece para GOZADO, APROBADO, RECHAZADO
                                             ?>
-                                            <a href="index.php?controller=vacacion&action=edit&id=<?php echo $vacacion_id; ?>" class="btn btn-warning btn-sm" title="Editar" target="_blank">
+                                            <a href="index.php?controller=vacacion&action=edit&id=<?php echo $vacacion_id; ?>&view=modal" class="btn btn-warning btn-sm" title="Editar">
                                                 <i class="bi bi-pencil-fill"></i>
                                             </a>
                                             

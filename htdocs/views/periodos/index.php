@@ -198,18 +198,21 @@
                                     </a>
 
                                     <?php
-                                    // --- CÓDIGO MODIFICADO PARA EL MODAL ---
-                                    // Preparamos los filtros para la URL del Modal
-                                    $filtro_nombre = urlencode($periodo['nombre_completo'] ?? '');
-                                    $filtro_anio = '';
-                                    if (isset($periodo['periodo_inicio'])) {
-                                        try { $filtro_anio = date('Y', strtotime($periodo['periodo_inicio'])); } 
-                                        catch (Exception $e) { $filtro_anio = ''; }
-                                    }
+                                        // --- CÓDIGO MODIFICADO PARA EL MODAL ---
+                                        // Preparamos los filtros para la URL del Modal
+                                        $filtro_nombre = urlencode($periodo['nombre_completo'] ?? '');
+                                        $filtro_anio = '';
+                                        if (isset($periodo['periodo_inicio'])) {
+                                            try { $filtro_anio = date('Y', strtotime($periodo['periodo_inicio'])); } 
+                                            catch (Exception $e) { $filtro_anio = ''; }
+                                        }
+                                        
+                                        // ¡NUEVO! Obtenemos el ID de la persona
+                                        $persona_id_filtro = $periodo['persona_id'] ?? '';
 
-                                    // Esta es la URL que cargaremos en el iframe
-                                    $modal_url = "index.php?controller=vacacion&action=indexModal&search_nombre={$filtro_nombre}&anio_inicio={$filtro_anio}";
-                                    ?>
+                                        // Esta es la URL que cargaremos en el iframe
+                                        $modal_url = "index.php?controller=vacacion&action=indexModal&search_nombre={$filtro_nombre}&anio_inicio={$filtro_anio}&persona_id_filtro={$persona_id_filtro}";
+                                        ?>
 
                                     <button type="button" 
                                             class="btn btn-info btn-sm btn-ver-vacaciones" 

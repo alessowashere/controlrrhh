@@ -1,6 +1,16 @@
 <?php
 // views/vacaciones/edit.php
 // Variables: $vacacion, $listaPersonas
+
+// --- NUEVO: Comprobar si estamos en modo modal ---
+$esModal = isset($_GET['view']) && $_GET['view'] === 'modal';
+
+$vacacion_id = isset($vacacion['id']) ? htmlspecialchars($vacacion['id']) : '';
+// ... (el resto de variables) ...
+?>
+<?php
+// views/vacaciones/edit.php
+// Variables: $vacacion, $listaPersonas
 $vacacion_id = isset($vacacion['id']) ? htmlspecialchars($vacacion['id']) : '';
 $persona_id_selected = isset($vacacion['persona_id']) ? $vacacion['persona_id'] : null;
 $periodo_id_selected = isset($vacacion['periodo_id']) ? $vacacion['periodo_id'] : null;
@@ -37,7 +47,7 @@ $estado_selected = isset($vacacion['estado']) ? $vacacion['estado'] : 'PENDIENTE
 <div class="card shadow-sm">
     <div class="card-body">
 
-        <form action="index.php?controller=vacacion&action=update" method="POST">
+        <form action="index.php?controller=vacacion&action=<?php echo $esModal ? 'updateModal' : 'update'; ?>" method="POST">
             <input type="hidden" name="id" value="<?php echo $vacacion_id; ?>">
             <div class="row g-3">
 

@@ -107,7 +107,7 @@ class Periodo {
     public function listar($periodo_filtro_anio_inicio = null) {
         try {
             $subQuery = "(SELECT periodo_id, SUM(dias_tomados) as dias_reales FROM vacaciones WHERE estado IN ('APROBADO', 'GOZADO') GROUP BY periodo_id)";
-            $sql = "SELECT per.id, p.nombre_completo, p.fecha_ingreso, per.periodo_inicio, per.periodo_fin, per.total_dias, COALESCE(v_calc.dias_reales, 0) AS dias_usados_calculados
+            $sql = "SELECT per.id, per.persona_id, p.nombre_completo, p.fecha_ingreso, per.periodo_inicio, per.periodo_fin, per.total_dias, COALESCE(v_calc.dias_reales, 0) AS dias_usados_calculados
                     FROM periodos AS per JOIN personas AS p ON per.persona_id = p.id LEFT JOIN " . $subQuery . " AS v_calc ON per.id = v_calc.periodo_id";
             $params = [];
             if ($periodo_filtro_anio_inicio && is_numeric($periodo_filtro_anio_inicio)) { $sql .= " WHERE YEAR(per.periodo_inicio) = ?"; $params[] = (int)$periodo_filtro_anio_inicio; }

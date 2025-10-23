@@ -1,6 +1,12 @@
 <?php
 // views/vacaciones/create.php
 // Variable disponible: $listaPersonas
+
+// --- Capturar el ID preseleccionado ---
+$persona_id_preselect = $_GET['persona_id_preselect'] ?? null;
+
+// --- NUEVO: Comprobar si estamos en modo modal ---
+$esModal = isset($_GET['view']) && $_GET['view'] === 'modal';
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -32,7 +38,7 @@
 <div class="card shadow-sm">
     <div class="card-body">
 
-        <form action="index.php?controller=vacacion&action=store" method="POST">
+        <form action="index.php?controller=vacacion&action=<?php echo $esModal ? 'storeModal' : 'store'; ?>" method="POST">
             <div class="row g-3">
 
                 <div class="col-md-6">
@@ -41,7 +47,8 @@
                         <option value="">-- Seleccione un empleado --</option>
                         <?php if (isset($listaPersonas) && is_array($listaPersonas)): ?>
                             <?php foreach ($listaPersonas as $persona): ?>
-                                <option value="<?php echo htmlspecialchars($persona['id'] ?? ''); ?>">
+                                <<?php $selected = (isset($persona['id']) && $persona['id'] == $persona_id_preselect) ? 'selected' : ''; ?>
+                                <option value="<?php echo htmlspecialchars($persona['id'] ?? ''); ?>" <?php echo $selected; ?>>
                                     <?php echo htmlspecialchars($persona['nombre_completo'] ?? 'N/A'); ?>
                                 </option>
                             <?php endforeach; ?>
@@ -109,11 +116,15 @@
 document.addEventListener('DOMContentLoaded', function() {
     const personaSelect = document.getElementById('persona_id');
     const periodoSelect = document.getElementById('periodo_id');
-    const baseUrl = '<?php echo BASE_URL; ?>'; // Get base URL from PHP config
+    const baseUrl = '<?php echo BASE_URL; ?>'; 
 
-    personaSelect.addEventListener('change', function() {
-        const personaId = this.value;
+    // Obtenemos el ID preseleccionado desde PHP
+    const preselectedPersonaId = '<?php echo $persona_id_preselect; ?>';
 
+    /**
+     * Función reutilizable para cargar períodos
+     */
+    function fetchPeriods(personaId) {
         periodoSelect.innerHTML = '<option value="">Cargando...</option>';
         periodoSelect.disabled = true;
 
@@ -125,12 +136,11 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch(`${baseUrl}index.php?controller=periodo&action=getPeriodosPorPersona&persona_id=${personaId}`)
             .then(response => response.ok ? response.json() : Promise.reject(response))
             .then(data => {
-                periodoSelect.innerHTML = ''; // Clear
-
+                periodoSelect.innerHTML = ''; 
                 if (data.error) {
                     console.error('API Error:', data.error);
                     periodoSelect.innerHTML = `<option value="" disabled>Error: ${data.error}</option>`;
-                } else if (data.length === 0) {
+                } else if (!data || data.length === 0) {
                     periodoSelect.innerHTML = '<option value="" disabled>-- No hay períodos para este empleado --</option>';
                 } else {
                     periodoSelect.innerHTML = '<option value="">-- Seleccione un período --</option>';
@@ -140,20 +150,30 @@ document.addEventListener('DOMContentLoaded', function() {
                         option.textContent = periodo.text;
                         periodoSelect.appendChild(option);
                     });
-                    periodoSelect.disabled = false; // Enable
+                    periodoSelect.disabled = false; 
                 }
             })
             .catch(error => {
                 console.error('Fetch Error:', error);
-                 // Try to get error text if possible
-                 error.text().then(text => {
-                     console.error("Server Response:", text);
-                     periodoSelect.innerHTML = '<option value="" disabled>Error al cargar. Ver consola.</option>';
-                 }).catch(() => {
-                      periodoSelect.innerHTML = '<option value="" disabled>Error al cargar períodos.</option>';
-                 });
-
+                try {
+                    error.text().then(text => {
+                        console.error("Server Response:", text);
+                        periodoSelect.innerHTML = '<option value="" disabled>Error al cargar. Ver consola.</option>';
+                    });
+                } catch(e) {
+                    periodoSelect.innerHTML = '<option value="" disabled>Error al cargar períodos.</option>';
+                }
             });
+    }
+
+    // 1. Añadimos el listener para cambios manuales
+    personaSelect.addEventListener('change', function() {
+        fetchPeriods(this.value); // Llama a la función
     });
+
+    // 2. Si hay un empleado preseleccionado, cargamos sus períodos al iniciar
+    if (preselectedPersonaId) {
+        fetchPeriods(preselectedPersonaId);
+    }
 });
 </script>
