@@ -153,15 +153,35 @@ $filtroPeriodoHtml .= '</select></div>';
         <div class="col-lg-4 col-md-6 mb-4">
             <div class="card shadow-sm h-100">
                 <div class="card-body d-flex flex-column">
+
+                    <h5 class="card-title fw-bold" style="color: #6f42c1;"> 
+                        <i class="bi bi-diagram-3-fill me-2"></i>Reporte por Unidad
+                    </h5>
+                    <p class="card-text">
+                        Saldos o vacaciones de todos los empleados de una unidad específica.
+                    </p>
+
                     <form action="index.php?controller=Reporte&action=generar" method="POST" target="_blank" class="mt-auto">
                         <input type="hidden" name="tipo_reporte" value="por_area">
-                        
+
                         <div class="form-group mb-2">
                             <label for="area_card" class="form-label-sm">Unidad / Área (Dependencia):</label>
+
                             <select name="area" id="area_card" class="form-select form-select-sm" required>
-                                </select>
+                                <option value="">-- Seleccione unidad --</option>
+                                <?php // $listaAreas viene del ReporteController
+                                if (isset($listaAreas) && is_array($listaAreas)): ?>
+                                    <?php foreach ($listaAreas as $area): ?>
+                                        <option value="<?php echo htmlspecialchars($area); ?>">
+                                            <?php echo htmlspecialchars($area); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <option value="" disabled>No se cargaron áreas.</option>
+                                <?php endif; ?>
+                            </select>
                         </div>
-                        
+
                         <?php echo str_replace('[ID]', 'area', $filtroPeriodoHtml); ?>
 
                         <div class="form-group mb-3">
@@ -171,12 +191,14 @@ $filtroPeriodoHtml .= '</select></div>';
                                 <option value="programados">Ver Vacaciones (Detalle)</option>
                             </select>
                         </div>
+
                         <button type="submit" class="btn w-100" style="background-color: #6f42c1; color: white;">
                             Generar Reporte de Unidad
                         </button>
                     </form>
                 </div>
             </div>
+        </div>
         </div>
         <div class="col-lg-4 col-md-6 mb-4">
             <div class="card shadow-sm h-100">
@@ -223,17 +245,17 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Validación de formularios (ya existía)
     const forms = document.querySelectorAll('form[target="_blank"]');
     forms.forEach(form => {
         form.addEventListener('submit', function(e) {
-            // ... (validación existente) ...
+            // La validación 'required' de HTML5 se encargará.
         });
     });
 
-    // --- INICIO CÓDIGO AÑADIDO PARA SELECT2 ---
-    // --- INICIO CÓDIGO AÑADIDO PARA SELECT2 ---
+    // --- INICIO: SCRIPT DE SELECT2 CORREGIDO ---
     $(document).ready(function() {
-        
+
         // 1. Inicializar Select2 para Empleados
         $('#empleado_id_card').select2({
             theme: 'bootstrap-5',
@@ -241,20 +263,20 @@ document.addEventListener('DOMContentLoaded', function() {
         });
 
         // 2. Inicializar Select2 para Áreas
+        // (Esta es la corrección clave para el buscador)
         $('#area_card').select2({
             theme: 'bootstrap-5',
             placeholder: '-- Seleccione unidad --'
         });
 
-        // 3. Inicializar los selectores de período (opcional pero recomendado)
-        // Damos una clase "select2-periodo" al HTML reutilizable
+        // 3. Inicializar todos los selectores de período
+        // (La clase 'select2-periodo' la pusimos en el HTML reutilizable)
         $('.select2-periodo').select2({
             theme: 'bootstrap-5',
             placeholder: '-- Todos los Períodos --'
         });
 
     });
-    // --- FIN CÓDIGO AÑADIDO ---
-    // --- FIN CÓDIGO AÑADIDO ---
+    // --- FIN: SCRIPT DE SELECT2 CORREGIDO ---
 });
 </script>

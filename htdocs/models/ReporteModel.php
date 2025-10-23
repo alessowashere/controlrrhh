@@ -278,5 +278,33 @@ class ReporteModel {
             return [];
         }
     }
+    public function getReporteVacacionesGeneralPorArea($filtros) {
+        try {
+            $sql = "SELECT p.area, p.nombre_completo, v.fecha_inicio, v.fecha_fin, v.dias_tomados, v.estado, v.tipo,
+                           per.periodo_inicio, per.periodo_fin
+                    FROM vacaciones v
+                    JOIN personas p ON v.persona_id = p.id
+                    JOIN periodos per ON v.periodo_id = per.id
+                    WHERE v.estado IN ('APROBADO', 'GOZADO')";
+            
+            $params = []; // Sin parámetros por defecto
+            
+            // Añadir filtro de período si existe
+            if (!empty($filtros['anio_inicio'])) {
+                $sql .= " AND YEAR(per.periodo_inicio) = :anio_inicio";
+                $params[':anio_inicio'] = $filtros['anio_inicio'];
+            }
+
+            // --- CAMBIO CLAVE: ORDENAR POR AREA ---
+            $sql .= " ORDER BY p.area ASC, p.nombre_completo ASC, v.fecha_inicio ASC";
+            
+            $stmt = $this->db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error en ReporteModel::getReporteVacacionesGeneralPorArea: " . $e->getMessage());
+            return [];
+        }
+    }
     // --- FIN NUEVA FUNCIÓN ---
 } // Fin de la clase
