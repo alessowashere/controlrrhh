@@ -109,7 +109,7 @@
                 <button type="submit" class="btn btn-success w-100">
                     <i class="bi bi-search me-1"></i>Buscar
                 </button>
-                 <a href="index.php?controller=vacacion&action=index" class="btn btn-outline-secondary w-100 mt-2">Limpiar</a>
+                 <a href="index.php?controller=vacacion&action=index" class="btn btn-outline-secondary w-100 mt-2" target="_blank">Limpiar</a>
             </div>
         </form>
     </div>
@@ -165,15 +165,17 @@
                                         <?php if ($estado == 'PENDIENTE'): ?>
                                             
                                             <a href="index.php?controller=vacacion&action=aprobar&id=<?php echo $vacacion_id; ?>"
-                                               class="btn btn-success btn-sm" 
-                                               title="Aprobar"
-                                               onclick="return confirm('¿Estás seguro de que deseas APROBAR esta solicitud?');">
+                                            class="btn btn-success btn-sm" 
+                                            title="Aprobar"
+                                            target="_blank" 
+                                            onclick="return confirm('¿Estás seguro de que deseas APROBAR esta solicitud?');">
                                                 <i class="bi bi-check-lg"></i>
                                             </a>
                                             
                                             <a href="index.php?controller=vacacion&action=rechazar&id=<?php echo $vacacion_id; ?>"
                                                class="btn btn-danger btn-sm" 
                                                title="Rechazar"
+                                               target="_blank"
                                                onclick="return confirm('¿Estás seguro de que deseas RECHAZAR esta solicitud?');">
                                                 <i class="bi bi-x-lg"></i>
                                             </a>
@@ -184,13 +186,14 @@
                                                   // Se eliminó el "if ($estado != 'GOZADO')"
                                                   // El botón "Editar" ahora aparece para GOZADO, APROBADO, RECHAZADO
                                             ?>
-                                            <a href="index.php?controller=vacacion&action=edit&id=<?php echo $vacacion_id; ?>" class="btn btn-warning btn-sm" title="Editar">
+                                            <a href="index.php?controller=vacacion&action=edit&id=<?php echo $vacacion_id; ?>" class="btn btn-warning btn-sm" title="Editar" target="_blank">
                                                 <i class="bi bi-pencil-fill"></i>
                                             </a>
                                             
                                             <a href="index.php?controller=vacacion&action=delete&id=<?php echo $vacacion_id; ?>" 
                                                class="btn btn-outline-danger btn-sm" 
                                                title="Cancelar/Eliminar"
+                                               target="_blank"
                                                onclick="return confirm('¿Estás seguro de que deseas eliminar este registro?');">
                                                 <i class="bi bi-trash-fill"></i>
                                             </a>

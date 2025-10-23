@@ -192,18 +192,43 @@
                                      </span>
                                 </td>
                                 <td class="text-center">
-                                    <?php if ($periodo_id): // Only show buttons if ID exists ?>
-                                        <a href="index.php?controller=periodo&action=edit&id=<?php echo $periodo_id; ?>" class="btn btn-warning btn-sm" title="Editar">
-                                            <i class="bi bi-pencil-fill"></i>
-                                        </a>
-                                        <a href="index.php?controller=periodo&action=delete&id=<?php echo $periodo_id; ?>"
-                                           class="btn btn-danger btn-sm"
-                                           title="Eliminar"
-                                           onclick="return confirm('¿Estás seguro de que deseas eliminar este período? Se borrarán también las vacaciones asociadas.');">
-                                            <i class="bi bi-trash-fill"></i>
-                                        </a>
-                                    <?php endif; ?>
-                                </td>
+                                <?php if ($periodo_id): // Only show buttons if ID exists ?>
+                                    <a href="index.php?controller=periodo&action=edit&id=<?php echo $periodo_id; ?>" class="btn btn-warning btn-sm" title="Editar Período">
+                                        <i class="bi bi-pencil-fill"></i>
+                                    </a>
+
+                                    <?php
+                                    // --- CÓDIGO MODIFICADO PARA EL MODAL ---
+                                    // Preparamos los filtros para la URL del Modal
+                                    $filtro_nombre = urlencode($periodo['nombre_completo'] ?? '');
+                                    $filtro_anio = '';
+                                    if (isset($periodo['periodo_inicio'])) {
+                                        try { $filtro_anio = date('Y', strtotime($periodo['periodo_inicio'])); } 
+                                        catch (Exception $e) { $filtro_anio = ''; }
+                                    }
+
+                                    // Esta es la URL que cargaremos en el iframe
+                                    $modal_url = "index.php?controller=vacacion&action=indexModal&search_nombre={$filtro_nombre}&anio_inicio={$filtro_anio}";
+                                    ?>
+
+                                    <button type="button" 
+                                            class="btn btn-info btn-sm btn-ver-vacaciones" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#detalleVacacionesModal"
+                                            data-url="<?php echo $modal_url; ?>"
+                                            title="Ver Vacaciones de <?php echo htmlspecialchars($periodo['nombre_completo'] ?? ''); ?> (Período <?php echo $filtro_anio; ?>)">
+                                        <i class="bi bi-calendar-range-fill"></i>
+                                    </button>
+                                    <?php // --- FIN DE CÓDIGO MODIFICADO --- ?>
+
+                                    <a href="index.php?controller=periodo&action=delete&id=<?php echo $periodo_id; ?>"
+                                    class="btn btn-danger btn-sm"
+                                    title="Eliminar Período"
+                                    onclick="return confirm('¿Estás seguro de que deseas eliminar este período? Se borrarán también las vacaciones asociadas.');">
+                                        <i class="bi bi-trash-fill"></i>
+                                    </a>
+                                <?php endif; ?>
+                            </td>
                             </tr>
                         <?php endforeach; ?>
                     <?php endif; ?>
@@ -212,4 +237,58 @@
              <small class="text-muted">Para períodos "En Progreso", la columna "Días Adquiridos / Devengados" indica los días generados hasta la fecha actual.</small>
         </div>
     </div>
+</div> <div class="modal fade" id="detalleVacacionesModal" tabindex="-1" aria-labelledby="detalleVacacionesModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable"> <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="detalleVacacionesModalLabel">Detalle de Vacaciones</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <iframe src="about:blank" 
+                style="width: 100%; height: 60vh; border: none;" 
+                allowfullscreen>
+        </iframe>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var detalleModal = document.getElementById('detalleVacacionesModal');
+    var iframe = detalleModal.querySelector('iframe');
+
+    // Escuchar cuando el modal está a punto de mostrarse
+    detalleModal.addEventListener('show.bs.modal', function (event) {
+        // 'event.relatedTarget' es el botón que disparó el modal
+        var button = event.relatedTarget; 
+        
+        // Obtener la URL del atributo 'data-url' del botón
+        var url = button.getAttribute('data-url');
+        
+        // Asignar esa URL al 'src' del iframe
+        if (iframe && url) {
+            iframe.setAttribute('src', url);
+        }
+        
+        // Opcional: Cambiar el título del modal
+        var titulo = button.getAttribute('title');
+        var modalTitle = detalleModal.querySelector('.modal-title');
+        if (modalTitle) {
+            modalTitle.textContent = titulo;
+        }
+    });
+
+    // Escuchar cuando el modal se oculta
+    detalleModal.addEventListener('hidden.bs.modal', function () {
+        // Limpiar el iframe para detener cualquier proceso (videos, etc.)
+        // y para que cargue de nuevo si se abre otra persona
+        if (iframe) {
+            iframe.setAttribute('src', 'about:blank');
+        }
+    });
+});
+</script>

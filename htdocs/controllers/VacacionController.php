@@ -231,4 +231,40 @@ class VacacionController {
         }
     }
 
-} // End Class/ End Class
+// ... (Después de la función rechazar()) ...
+
+    /**
+     * Muestra el index de vacaciones SIN layout (para Modales).
+     */
+    public function indexModal() {
+        $search_nombre = null; $search_area = null; $anio_inicio_filtro = null;
+        $listaAnios = []; $listaVacaciones = []; $errorMessage = null;
+
+        try {
+            // 1. Get Search/Filter parameters from URL
+            $search_nombre = strip_tags(filter_input(INPUT_GET, 'search_nombre') ?? '');
+            $search_area = strip_tags(filter_input(INPUT_GET, 'search_area') ?? '');
+            $anio_inicio_filtro = filter_input(INPUT_GET, 'anio_inicio', FILTER_VALIDATE_INT);
+             if ($anio_inicio_filtro === false || $anio_inicio_filtro < 1900 || $anio_inicio_filtro > 2100) $anio_inicio_filtro = null;
+
+            // 2. Get period year options
+            $listaAnios = $this->periodoModel->getPeriodoAnios();
+
+            // 3. Get vacation list
+            $listaVacaciones = $this->vacacionModel->listar(
+                $search_nombre,
+                $search_area,
+                $anio_inicio_filtro
+            );
+
+        } catch (Exception $e) {
+             error_log("Error in VacacionController::indexModal - " . $e->getMessage());
+             $errorMessage = "Error al cargar datos: " . $e->getMessage();
+        }
+
+        // 4. Cargar la vista SIN header/footer
+        // Pasamos las mismas variables que la función index()
+        require 'views/vacaciones/index.php';
+    }
+
+} // End Class
