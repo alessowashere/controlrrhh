@@ -189,14 +189,22 @@ $filtroPeriodoHtml .= '</select></div>';
                     </p>
                     
                     <form action="index.php?controller=Reporte&action=generar" method="POST" target="_blank" class="mt-auto">
-                        <input type="hidden" name="tipo_reporte" value="general_por_area">
-                        
-                        <?php echo str_replace('[ID]', 'general_area', $filtroPeriodoHtml); ?>
+                    <input type="hidden" name="tipo_reporte" value="general_por_area">
 
-                        <button type="submit" class="btn btn-success w-100 mt-2">
-                            Generar Reporte
-                        </button>
-                    </form>
+                    <?php echo str_replace('[ID]', 'general_area', $filtroPeriodoHtml); ?>
+
+                    <div class="form-group mb-3">
+                        <label for="tipo_info_general_area" class="form-label-sm">Tipo de Información:</label>
+                        <select name="tipo_info_general_area" id="tipo_info_general_area" class="form-select form-select-sm" required>
+                            <option value="saldos" selected>Ver Saldos (Resumen)</option>
+                            <option value="programados">Ver Vacaciones (Detalle)</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-success w-100">
+                        Generar Reporte
+                    </button>
+                </form>
                 </div>
             </div>
         </div>
@@ -223,23 +231,30 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // --- INICIO CÓDIGO AÑADIDO PARA SELECT2 ---
+    // --- INICIO CÓDIGO AÑADIDO PARA SELECT2 ---
     $(document).ready(function() {
         
         // 1. Inicializar Select2 para Empleados
         $('#empleado_id_card').select2({
             theme: 'bootstrap-5',
-            placeholder: '-- Seleccione un empleado --',
-            // Arreglo para que el buscador funcione dentro del layout
-            dropdownParent: $('#empleado_id_card').parent() 
+            placeholder: '-- Seleccione un empleado --'
         });
 
         // 2. Inicializar Select2 para Áreas
         $('#area_card').select2({
             theme: 'bootstrap-5',
-            placeholder: '-- Seleccione unidad --',
-            dropdownParent: $('#area_card').parent()
+            placeholder: '-- Seleccione unidad --'
         });
+
+        // 3. Inicializar los selectores de período (opcional pero recomendado)
+        // Damos una clase "select2-periodo" al HTML reutilizable
+        $('.select2-periodo').select2({
+            theme: 'bootstrap-5',
+            placeholder: '-- Todos los Períodos --'
+        });
+
     });
+    // --- FIN CÓDIGO AÑADIDO ---
     // --- FIN CÓDIGO AÑADIDO ---
 });
 </script>

@@ -129,9 +129,21 @@ class ReporteController {
                     }
                     break;
                     case 'general_por_area':
-                    $tituloReporte = 'Reporte General de Saldos por Unidad';
-                    $data['resultados'] = $this->reporteModel->getReporteGeneralPorArea($filtros); 
-                    $vistaReporte = 'views/reportes/vistas/general.php'; // Reutilizamos la vista general
+                    // Leer el nuevo filtro
+                    $tipo_info = $_POST['tipo_info_general_area'] ?? 'saldos';
+                    $filtros['tipo_info_general_area'] = $tipo_info;
+
+                    if ($tipo_info == 'programados') {
+                        // Reporte de Vacaciones (Detalle)
+                        $tituloReporte = 'Reporte General de Vacaciones por Unidad';
+                        $data['resultados'] = $this->reporteModel->getReporteVacacionesGeneralPorArea($filtros);
+                        $vistaReporte = 'views/reportes/vistas/general_detalle_por_area.php'; // Usaremos una NUEVA vista
+                    } else {
+                        // Reporte de Saldos (Resumen) - (Comportamiento anterior)
+                        $tituloReporte = 'Reporte General de Saldos por Unidad';
+                        $data['resultados'] = $this->reporteModel->getReporteGeneralPorArea($filtros); 
+                        $vistaReporte = 'views/reportes/vistas/general.php'; // Vista existente
+                    }
                     break;
                 // --- FIN CAMBIO EN CASE 'por_area' ---
 
