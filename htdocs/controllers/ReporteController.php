@@ -105,14 +105,35 @@ class ReporteController {
                     break;
                 
                 // --- NUEVO CASE PARA EL REPORTE ---
+                // --- INICIO CAMBIO EN CASE 'por_area' ---
                 case 'por_area':
                      if (empty($filtros['area'])) {
                         throw new Exception("Debe seleccionar una unidad/dependencia.");
                     }
-                    $tituloReporte = 'Reporte de Saldos por Unidad: ' . htmlspecialchars($filtros['area']);
-                    $data['resultados'] = $this->reporteModel->getReportePorArea($filtros);
-                    $vistaReporte = 'views/reportes/vistas/por_area.php';
+                    
+                    // Leer el nuevo filtro
+                    $tipo_info = $_POST['tipo_info_area'] ?? 'saldos';
+                    $filtros['tipo_info_area'] = $tipo_info;
+
+                    if ($tipo_info == 'programados') {
+                        // Reporte de Vacaciones (Detalle)
+                        $tituloReporte = 'Reporte de Vacaciones Programadas por Unidad: ' . htmlspecialchars($filtros['area']);
+                        $data['resultados'] = $this->reporteModel->getReporteVacacionesPorArea($filtros);
+                        $vistaReporte = 'views/reportes/vistas/por_area_detalle.php'; // Nueva vista
+                    } else {
+                        // Reporte de Saldos (Resumen) - (Comportamiento anterior)
+                        $tituloReporte = 'Reporte de Saldos por Unidad: ' . htmlspecialchars($filtros['area']);
+                        // (La función getReportePorArea ya fue actualizada en Paso 2 para usar anio_inicio)
+                        $data['resultados'] = $this->reporteModel->getReportePorArea($filtros); 
+                        $vistaReporte = 'views/reportes/vistas/por_area.php'; // Vista existente
+                    }
                     break;
+                    case 'general_por_area':
+                    $tituloReporte = 'Reporte General de Saldos por Unidad';
+                    $data['resultados'] = $this->reporteModel->getReporteGeneralPorArea($filtros); 
+                    $vistaReporte = 'views/reportes/vistas/general.php'; // Reutilizamos la vista general
+                    break;
+                // --- FIN CAMBIO EN CASE 'por_area' ---
 
                 default:
                     throw new Exception("Tipo de reporte no válido.");
