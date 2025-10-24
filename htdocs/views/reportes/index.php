@@ -199,7 +199,7 @@ $filtroPeriodoHtml .= '</select></div>';
                 </div>
             </div>
         </div>
-        </div>
+
         <div class="col-lg-4 col-md-6 mb-4">
             <div class="card shadow-sm h-100">
                 <div class="card-body d-flex flex-column">
