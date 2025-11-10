@@ -12,14 +12,18 @@ class Vacacion {
     // --- List Function (Handles Search/Filter & Auto-Update) ---
     public function listar($search_nombre = null, $search_area = null, $anio_inicio = null) {
         try {
-            $sql = "SELECT v.id, p.nombre_completo, p.area, v.fecha_inicio, v.fecha_fin, v.dias_tomados, v.estado
+            // --- CAMBIO: Añadido v.documento_adjunto ---
+            $sql = "SELECT v.id, p.nombre_completo, p.area, v.fecha_inicio, v.fecha_fin, v.dias_tomados, v.estado, v.documento_adjunto
                     FROM vacaciones AS v JOIN personas AS p ON v.persona_id = p.id JOIN periodos AS per ON v.periodo_id = per.id
                     WHERE 1=1";
             $params = [];
             if (!empty($search_nombre)) { $sql .= " AND p.nombre_completo LIKE ?"; $params[] = "%" . $search_nombre . "%"; }
             if (!empty($search_area)) { $sql .= " AND p.area LIKE ?"; $params[] = "%" . $search_area . "%"; }
             if (!empty($anio_inicio) && is_numeric($anio_inicio)) { $sql .= " AND YEAR(per.periodo_inicio) = ?"; $params[] = (int)$anio_inicio; }
-            $sql .= " ORDER BY v.fecha_inicio DESC";
+            
+            // --- CAMBIO: Añadido p.nombre_completo ASC para agrupar ---
+            $sql .= " ORDER BY p.nombre_completo ASC, v.fecha_inicio DESC";
+            
             $stmt = $this->db->prepare($sql); $stmt->execute($params); $listaVacaciones = $stmt->fetchAll();
 
             // --- Auto State Update ---
@@ -50,6 +54,7 @@ class Vacacion {
     public function obtenerPorId($id) {
          if (!is_numeric($id) || $id <= 0) return false;
         try {
+            // --- CAMBIO: Seleccionamos todo para incluir el documento ---
             $sql = "SELECT * FROM vacaciones WHERE id = ?";
             $stmt = $this->db->prepare($sql);
             $stmt->execute([$id]);
@@ -60,8 +65,9 @@ class Vacacion {
     // --- Create a new vacation ---
     public function crear($datos) {
         try {
-            $sql = "INSERT INTO vacaciones (persona_id, periodo_id, fecha_inicio, fecha_fin, dias_tomados, tipo, estado)
-                    VALUES (:pid, :perid, :inicio, :fin, :dias, :tipo, :estado)";
+            // --- CAMBIO: Añadido documento_adjunto ---
+            $sql = "INSERT INTO vacaciones (persona_id, periodo_id, fecha_inicio, fecha_fin, dias_tomados, tipo, estado, documento_adjunto)
+                    VALUES (:pid, :perid, :inicio, :fin, :dias, :tipo, :estado, :doc)";
             $stmt = $this->db->prepare($sql);
             return $stmt->execute([
                 ':pid' => $datos['persona_id'],
@@ -70,7 +76,8 @@ class Vacacion {
                 ':fin' => $datos['fecha_fin'],
                 ':dias' => $datos['dias_tomados'],
                 ':tipo' => $datos['tipo'],
-                ':estado' => $datos['estado']
+                ':estado' => $datos['estado'],
+                ':doc' => $datos['documento_adjunto'] ?? null // Añadido
             ]);
         } catch (PDOException $e) { error_log("Error creating vacation: " . $e->getMessage()); return false; }
     }
@@ -79,9 +86,10 @@ class Vacacion {
     public function actualizar($id, $datos) {
         if (!is_numeric($id) || $id <= 0) return false;
         try {
+            // --- CAMBIO: Añadido documento_adjunto ---
             $sql = "UPDATE vacaciones SET
                         persona_id = :pid, periodo_id = :perid, fecha_inicio = :inicio, fecha_fin = :fin,
-                        dias_tomados = :dias, tipo = :tipo, estado = :estado
+                        dias_tomados = :dias, tipo = :tipo, estado = :estado, documento_adjunto = :doc
                     WHERE id = :id";
             $stmt = $this->db->prepare($sql);
             return $stmt->execute([
@@ -92,6 +100,7 @@ class Vacacion {
                 ':dias' => $datos['dias_tomados'],
                 ':tipo' => $datos['tipo'],
                 ':estado' => $datos['estado'],
+                ':doc' => $datos['documento_adjunto'] ?? null, // Añadido
                 ':id' => $id
             ]);
         } catch (PDOException $e) { error_log("Error updating vacation ID {$id}: " . $e->getMessage()); return false; }
@@ -101,13 +110,25 @@ class Vacacion {
     public function eliminar($id) {
          if (!is_numeric($id) || $id <= 0) return false;
         try {
+            // --- CAMBIO: Antes de borrar, obtenemos el path del doc para borrar el archivo físico ---
+            $data_vac = $this->obtenerPorId($id);
+            $doc_path = $data_vac['documento_adjunto'] ?? null;
+
             $sql = "DELETE FROM vacaciones WHERE id = ?";
             $stmt = $this->db->prepare($sql);
-            return $stmt->execute([$id]);
+            $success = $stmt->execute([$id]);
+
+            if ($success && $doc_path && file_exists($doc_path)) {
+                @unlink($doc_path); // Intentamos borrar el archivo del servidor
+            }
+            return $success;
+
         } catch (PDOException $e) { error_log("Error deleting vacation ID {$id}: " . $e->getMessage()); return false; }
     }
 
-    // --- Count Vacations by State ---
+    // ... (El resto de funciones: contarPorEstado, listarActuales, listarProximas, actualizarEstado) ...
+    // ... (Copiar/pegar las funciones existentes que no se modificaron) ...
+
     public function contarPorEstado($estado = 'PENDIENTE') {
         try {
             $sql = "SELECT COUNT(*) FROM vacaciones WHERE estado = ?";
@@ -116,8 +137,6 @@ class Vacacion {
             return $stmt->fetchColumn();
         } catch (PDOException $e) { error_log("Error counting vacations by state {$estado}: " . $e->getMessage()); return 0; }
     }
-
-    // --- List Current Vacations ---
     public function listarActuales($limite = 5) {
         try {
             $sql = "SELECT p.nombre_completo, v.fecha_fin
@@ -129,8 +148,6 @@ class Vacacion {
             return $stmt->fetchAll();
         } catch (PDOException $e) { error_log("Error listing current vacations: " . $e->getMessage()); return []; }
     }
-
-    // --- List Upcoming Vacations ---
     public function listarProximas($dias_anticipacion = 7, $limite = 5) {
         try {
             $sql = "SELECT p.nombre_completo, v.fecha_inicio, v.fecha_fin
@@ -146,14 +163,11 @@ class Vacacion {
     }
     public function actualizarEstado($id, $nuevoEstado) {
             if (!is_numeric($id) || $id <= 0) return false;
-            
-            // Validar que el estado sea uno de los permitidos
             $estadosValidos = ['APROBADO', 'RECHAZADO', 'PENDIENTE', 'GOZADO'];
             if (!in_array($nuevoEstado, $estadosValidos)) {
                 error_log("Intento de actualizar a estado no válido '{$nuevoEstado}' para vacacion ID {$id}");
                 return false;
             }
-            
             try {
                 $sql = "UPDATE vacaciones SET estado = :estado WHERE id = :id";
                 $stmt = $this->db->prepare($sql);
@@ -163,7 +177,9 @@ class Vacacion {
                 ]);
             } catch (PDOException $e) {
                 error_log("Error actualizando estado vacacion ID {$id}: " . $e->getMessage());
-                return false; // Return false on error
+                return false;
             }
         }
+
 } // End Class
+?>

@@ -27,6 +27,8 @@ $esModal = isset($_GET['view']) && $_GET['view'] === 'modal';
          case 'error_dias_invalidos': $mensaje = 'Error: La cantidad de días a tomar debe ser mayor a cero.'; break;
         case 'error_guardar': $mensaje = 'Error: No se pudo guardar el registro.'; break;
         case 'error_excepcion': $mensaje = 'Error inesperado del sistema.'; break;
+        // --- NUEVO: Mensajes de subida de archivo ---
+        case 'error_upload': $mensaje = 'Error al subir el documento adjunto.'; break;
     }
     if ($mensaje) : ?>
     <div class="alert alert-<?php echo $tipoAlerta; ?> alert-dismissible fade show" role="alert">
@@ -38,7 +40,7 @@ $esModal = isset($_GET['view']) && $_GET['view'] === 'modal';
 <div class="card shadow-sm">
     <div class="card-body">
 
-        <form action="index.php?controller=vacacion&action=<?php echo $esModal ? 'storeModal' : 'store'; ?>" method="POST">
+        <form action="index.php?controller=vacacion&action=<?php echo $esModal ? 'storeModal' : 'store'; ?>" method="POST" enctype="multipart/form-data">
             <div class="row g-3">
 
                 <div class="col-md-6">
@@ -97,6 +99,12 @@ $esModal = isset($_GET['view']) && $_GET['view'] === 'modal';
                         <option value="APROBADO">APROBADO</option>
                         <option value="RECHAZADO">RECHAZADO</option>
                     </select>
+                </div>
+
+                <div class="col-md-12">
+                    <label for="documento" class="form-label">Documento Adjunto (Opcional)</label>
+                    <input type="file" class="form-control" id="documento" name="documento">
+                    <div class="form-text">Subir un documento PDF, Word o Imagen (ej. Solicitud firmada, boleta, etc.)</div>
                 </div>
 
             </div>

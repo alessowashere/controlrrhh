@@ -19,6 +19,8 @@ $fecha_fin_val = isset($vacacion['fecha_fin']) ? htmlspecialchars($vacacion['fec
 $dias_tomados_val = isset($vacacion['dias_tomados']) ? htmlspecialchars($vacacion['dias_tomados']) : '0';
 $tipo_selected = isset($vacacion['tipo']) ? $vacacion['tipo'] : 'NORMAL';
 $estado_selected = isset($vacacion['estado']) ? $vacacion['estado'] : 'PENDIENTE';
+// --- NUEVO: variable para doc existente ---
+$documento_existente = $vacacion['documento_adjunto'] ?? null;
 ?>
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -39,6 +41,8 @@ $estado_selected = isset($vacacion['estado']) ? $vacacion['estado'] : 'PENDIENTE
          case 'error_dias_invalidos': $mensaje = 'Error: La cantidad de días a tomar debe ser mayor a cero.'; break;
         case 'error_guardar': $mensaje = 'Error: No se pudo guardar el registro.'; break;
         case 'error_excepcion': $mensaje = 'Error inesperado del sistema.'; break;
+        // --- NUEVO: Mensajes de subida de archivo ---
+        case 'error_upload': $mensaje = 'Error al subir el nuevo documento adjunto.'; break;
     }
     if ($mensaje) : ?>
     <div class="alert alert-<?php echo $tipoAlerta; ?> alert-dismissible fade show" role="alert"><?php echo htmlspecialchars($mensaje); ?><button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>
@@ -47,7 +51,7 @@ $estado_selected = isset($vacacion['estado']) ? $vacacion['estado'] : 'PENDIENTE
 <div class="card shadow-sm">
     <div class="card-body">
 
-        <form action="index.php?controller=vacacion&action=<?php echo $esModal ? 'updateModal' : 'update'; ?>" method="POST">
+        <form action="index.php?controller=vacacion&action=<?php echo $esModal ? 'updateModal' : 'update'; ?>" method="POST" enctype="multipart/form-data">
             <input type="hidden" name="id" value="<?php echo $vacacion_id; ?>">
             <div class="row g-3">
 
@@ -81,6 +85,24 @@ $estado_selected = isset($vacacion['estado']) ? $vacacion['estado'] : 'PENDIENTE
                 <div class="col-md-4"><label for="dias_tomados" class="form-label">Días *</label><input type="number" class="form-control" id="dias_tomados" name="dias_tomados" required min="1" value="<?php echo $dias_tomados_val; ?>"></div>
                 <div class="col-md-6"><label for="tipo" class="form-label">Tipo</label><select id="tipo" name="tipo" class="form-select"><option value="NORMAL" <?php echo ($tipo_selected == 'NORMAL') ? 'selected' : ''; ?>>NORMAL</option><option value="PENDIENTE" <?php echo ($tipo_selected == 'PENDIENTE') ? 'selected' : ''; ?>>PENDIENTE</option><option value="ADELANTO" <?php echo ($tipo_selected == 'ADELANTO') ? 'selected' : ''; ?>>ADELANTO</option></select></div>
                 <div class="col-md-6"><label for="estado" class="form-label">Estado</label><select id="estado" name="estado" class="form-select"><option value="PENDIENTE" <?php echo ($estado_selected == 'PENDIENTE') ? 'selected' : ''; ?>>PENDIENTE</option><option value="APROBADO" <?php echo ($estado_selected == 'APROBADO') ? 'selected' : ''; ?>>APROBADO</option><option value="RECHAZADO" <?php echo ($estado_selected == 'RECHAZADO') ? 'selected' : ''; ?>>RECHAZADO</option><option value="GOZADO" <?php echo ($estado_selected == 'GOZADO') ? 'selected' : ''; ?>>GOZADO</option></select></div>
+                
+                <div class="col-md-12">
+                    <label for="documento" class="form-label">Documento Adjunto</label>
+                    
+                    <?php if ($documento_existente): ?>
+                        <div class="mb-2">
+                            <a href="<?php echo htmlspecialchars($documento_existente); ?>" target="_blank" class="btn btn-info btn-sm">
+                                <i class="bi bi-file-earmark-arrow-down-fill me-1"></i> Ver Documento Actual
+                            </a>
+                            <span class="text-muted ms-2">(<?php echo htmlspecialchars(basename($documento_existente)); ?>)</span>
+                        </div>
+                    <?php endif; ?>
+                    
+                    <input type="file" class="form-control" id="documento" name="documento">
+                    <div class="form-text">
+                        <?php echo $documento_existente ? 'Subir un archivo nuevo reemplazará al actual.' : 'Subir un documento PDF, Word o Imagen.'; ?>
+                    </div>
+                </div>
 
             </div>
             <hr class="my-4">
